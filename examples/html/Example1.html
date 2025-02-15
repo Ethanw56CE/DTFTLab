@@ -1,0 +1,248 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      -->
+<title>Example1</title>
+<meta name="generator" content="MATLAB 24.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2025-02-15">
+<meta name="DC.source" content="Example1.m">
+<style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style>
+</head>
+<body>
+<div class="content">
+<pre class="codeinput">clc; clear; close <span class="string">all</span>
+
+<span class="comment">% EXAMPLE1 - Demonstrating Frequency Domain Processing using DTFTLab</span>
+<span class="comment">%</span>
+<span class="comment">% Description:</span>
+<span class="comment">%   This script showcases a signal processing problem where the DTFTLab</span>
+<span class="comment">%   library can be used to apply filtering, downsampling, and upsampling</span>
+<span class="comment">%   in the frequency domain. The example explores how different filters</span>
+<span class="comment">%   affect a signal and how aliasing occurs when downsampling without</span>
+<span class="comment">%   appropriate filtering.</span>
+<span class="comment">%</span>
+<span class="comment">% Steps:</span>
+<span class="comment">%   1. Define two filters: an all-pass filter H3 and a sign-changing filter H4.</span>
+<span class="comment">%   2. Apply these filters to a given frequency-domain signal X(e^jω).</span>
+<span class="comment">%   3. Downsample and observe the aliasing effects.</span>
+<span class="comment">%   4. Upsample and reconstruct the original signal.</span>
+<span class="comment">%   5. Compare results by filtering again and summing components.</span>
+<span class="comment">%</span>
+<span class="comment">% See also: applyFilter, downsampleDTFT, upsampleDTFT, magPlot</span>
+
+<span class="comment">% Load and display an example image (for visualization context)</span>
+img = imread(<span class="string">'Example1.jpg'</span>);
+imshow(img);
+
+<span class="comment">% Define frequency range (-pi to pi)</span>
+omega = linspace(-pi, pi, 100000);
+
+<span class="comment">% H_3(e^jω) is an all-pass filter</span>
+H3 = ones(size(omega));
+figure;
+subplot(1, 2, 1);
+magPlot(H3, true, true);
+<span class="comment">% H_4(e^jω) = {1: 0 &lt;= ω &lt; pi; -1: -pi &lt;= ω &lt; 0}</span>
+H4 = zeros(size(omega));
+H4(omega&gt;0) = 1;
+H4(omega&lt;0) = -1;
+subplot(1, 2, 2);
+magPlot(H4, true, true);
+
+<span class="comment">% Define input signal: X(e^jω) = 1-|ω/pi|</span>
+X = 1 - abs(omega/pi);
+figure;
+subplot(3,3,1);
+magPlot(X, false, true);
+
+<span class="comment">% Apply filters</span>
+A4 = applyFilter(X, H4, true);
+subplot(3,3,2);
+magPlot(A4, true, true);
+A3 = applyFilter(X, H3, true);
+subplot(3,3,3);
+magPlot(A3, true, true);
+
+<span class="comment">% Downsampling</span>
+Y3 = downsampleDTFT(A3, omega, 2, false, true);
+subplot(3,3,4);
+magPlot(Y3, true, true);
+Y4 = downsampleDTFT(A4, omega, 2, false, true);
+subplot(3,3,5);
+magPlot(Y4, true, true);
+
+<span class="comment">% Upsampling</span>
+W3 = upsampleDTFT(Y3, omega, 2, false, true);
+subplot(3,3,6);
+magPlot(W3, true, true);
+W4 = upsampleDTFT(Y4, omega, 2, false, true);
+subplot(3,3,7);
+magPlot(W4, true, true);
+
+<span class="comment">% Filtering again</span>
+V4 = applyFilter(W4, H4, true);
+subplot(3,3,8);
+magPlot(V4, true, true);
+
+<span class="comment">% Summing components</span>
+Z = V4 + W3;
+subplot(3,3,9);
+magPlot(Z, true, true);
+</pre>
+<img vspace="5" hspace="5" src="Example1_01.png" alt=""> <img vspace="5" hspace="5" src="Example1_02.png" alt=""> <img vspace="5" hspace="5" src="Example1_03.png" alt=""> <p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024b</a>
+<br>
+</p>
+</div>
+<!--
+##### SOURCE BEGIN #####
+clc; clear; close all
+
+% EXAMPLE1 - Demonstrating Frequency Domain Processing using DTFTLab
+%
+% Description:
+%   This script showcases a signal processing problem where the DTFTLab
+%   library can be used to apply filtering, downsampling, and upsampling
+%   in the frequency domain. The example explores how different filters
+%   affect a signal and how aliasing occurs when downsampling without
+%   appropriate filtering.
+%
+% Steps:
+%   1. Define two filters: an all-pass filter H3 and a sign-changing filter H4.
+%   2. Apply these filters to a given frequency-domain signal X(e^jω).
+%   3. Downsample and observe the aliasing effects.
+%   4. Upsample and reconstruct the original signal.
+%   5. Compare results by filtering again and summing components.
+%
+% See also: applyFilter, downsampleDTFT, upsampleDTFT, magPlot
+
+% Load and display an example image (for visualization context)
+img = imread('Example1.jpg');
+imshow(img);
+
+% Define frequency range (-pi to pi)
+omega = linspace(-pi, pi, 100000);
+
+% H_3(e^jω) is an all-pass filter
+H3 = ones(size(omega));
+figure;
+subplot(1, 2, 1);
+magPlot(H3, true, true);
+% H_4(e^jω) = {1: 0 <= ω < pi; -1: -pi <= ω < 0}
+H4 = zeros(size(omega));
+H4(omega>0) = 1;
+H4(omega<0) = -1;
+subplot(1, 2, 2);
+magPlot(H4, true, true);
+
+% Define input signal: X(e^jω) = 1-|ω/pi|
+X = 1 - abs(omega/pi);
+figure;
+subplot(3,3,1);
+magPlot(X, false, true);
+
+% Apply filters
+A4 = applyFilter(X, H4, true);
+subplot(3,3,2);
+magPlot(A4, true, true);
+A3 = applyFilter(X, H3, true);
+subplot(3,3,3);
+magPlot(A3, true, true);
+
+% Downsampling
+Y3 = downsampleDTFT(A3, omega, 2, false, true);
+subplot(3,3,4);
+magPlot(Y3, true, true);
+Y4 = downsampleDTFT(A4, omega, 2, false, true);
+subplot(3,3,5);
+magPlot(Y4, true, true);
+
+% Upsampling
+W3 = upsampleDTFT(Y3, omega, 2, false, true);
+subplot(3,3,6);
+magPlot(W3, true, true);
+W4 = upsampleDTFT(Y4, omega, 2, false, true);
+subplot(3,3,7);
+magPlot(W4, true, true);
+
+% Filtering again
+V4 = applyFilter(W4, H4, true);
+subplot(3,3,8);
+magPlot(V4, true, true);
+
+% Summing components
+Z = V4 + W3;
+subplot(3,3,9);
+magPlot(Z, true, true);
+
+##### SOURCE END #####
+-->
+</body>
+</html>
