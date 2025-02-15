@@ -39,7 +39,7 @@ magPlot(X_dtft, false, true, omega); % Plot magnitude spectrum
 
 ### **Apply a Low-Pass Filter**
 ```matlab
-H = bestLowPassFilter(X_dtft, 0.3);  % Design filter with cutoff 0.3π
+H = bestLowPassFilter(X_dtft, 0.3);  % Design filter with 30% magnitude cutoff
 X_filtered = applyFilter(X_dtft, H, false); % Apply filter
 magPlot(X_filtered, false, true, omega); % Plot filtered spectrum
 ```
