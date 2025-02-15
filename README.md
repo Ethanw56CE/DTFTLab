@@ -58,7 +58,6 @@ plotReIm(X_dtft, false, omega); % 3D plot of real/imaginary components
 ## **Example Scripts**
 - **Example1.m** - Demonstrates aliasing effects in downsampling.
 - **ExampleNoiseRemoval.m** - Shows noise removal using frequency-domain filtering.
-- **ExampleFFT.m** - Compares FFT and DTFT approaches.
 
 ## **License**
 This toolbox is open-source under the **MIT License**.
