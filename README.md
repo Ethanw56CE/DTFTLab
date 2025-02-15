@@ -27,7 +27,7 @@ savepath
 ```
 
 ## **Getting Started**
-### **1Compute and Plot a DTFT**
+### **Compute and Plot a DTFT**
 ```matlab
 Fs = 1000;                      % Sampling frequency
 t = (0:1/Fs:1-1/Fs);           % Time vector
