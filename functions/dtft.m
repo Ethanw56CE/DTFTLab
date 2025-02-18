@@ -29,6 +29,10 @@ function [X_dtft, omega] = dtft(timeSignal)
 %
 % See also: idtft, fft, fftshift, ifft
 
+    arguments
+        timeSignal (1,:) double
+    end
+
 % Compute the DTFT using FFT and normalize
 X_dtft = fftshift(fft(timeSignal)) / length(timeSignal);
 

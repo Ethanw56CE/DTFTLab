@@ -1,4 +1,4 @@
-function plotReIm(H, subplotMode, omega)
+function plotReIm(H, options)
 % PLOTREIM - Plots the real and imaginary parts of a Fourier Transform in 3D.
 %
 % Syntax:
@@ -21,8 +21,7 @@ function plotReIm(H, subplotMode, omega)
 % Example:
 %   omega = linspace(-pi, pi, 1000);
 %   H = exp(-1j * omega);
-%   plotReIm(H);
-%   plotReIm(H, true, omega);
+%   plotReIm(H, subplotMode=true);
 %
 % Notes:
 %   - The function automatically adjusts the plot based on the input signal.
@@ -31,15 +30,13 @@ function plotReIm(H, subplotMode, omega)
 %
 % See also: magPlot
 
-    if nargin < 2 || isempty(subplotMode)
-        subplotMode = false;
+    arguments
+        H (1,:) double
+        options.omega (1,:) double = linspace(-pi, pi, length(H))
+        options.subplotMode boolean = false
     end
-    
-    if nargin < 3 || isempty(omega)
-        omega = linspace(-pi, pi, length(H));
-    end
-    
-    if ~subplotMode
+
+    if ~options.subplotMode
         figure;
     end
     
@@ -51,7 +48,7 @@ function plotReIm(H, subplotMode, omega)
     formattedName = strrep(name, '_', '\_'); % Replace "_" with "\_"
     
     % Plot real and imaginary components in 3D
-    plot3(omega, real(H), imag(H), 'LineWidth', 1.5);
+    plot3(options.omega, real(H), imag(H), 'LineWidth', 1.5);
     xlabel('\omega'); 
     ylabel(['Real(', formattedName, '(\omega))']); 
     zlabel(['Imag(', formattedName, '(\omega))']);

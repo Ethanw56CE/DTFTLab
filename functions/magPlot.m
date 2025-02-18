@@ -1,11 +1,9 @@
-function magPlot(H, plotNegative, subplotMode, omega, yRange, dynamicXRange)
+function magPlot(H, options)
 % MAGPLOT - Plots the magnitude of the Fourier Transform.
 %
 % Syntax:
-%   magPlot(H)                              % Default: magnitude plot in new figure
-%   magPlot(H, true)                        % Negative values plot in new figure
-%   magPlot(H, false, true)                 % Add magnitude plot to subplot
-%   magPlot(H, true, true, omega, yRange)   % Add negative plot to subplot with custom omega & yRange
+%   magPlot(H)                        % Default: magnitude plot in new figure
+%   magPlot(H, options)                % Customize with name-value pairs
 %
 % Description:
 %   This function plots the magnitude of a given Fourier Transform signal.
@@ -13,33 +11,35 @@ function magPlot(H, plotNegative, subplotMode, omega, yRange, dynamicXRange)
 %   supports subplots, and dynamically adjusts the frequency and magnitude ranges.
 %
 % Inputs:
-%   H                - Fourier Transform values (vector)
-%   plotNegative     - Boolean flag (true = show negative values, false = plot magnitude) (default: false)
-%   subplotMode      - Boolean flag (true = do NOT create a new figure, false = create new figure) (default: false)
-%   omega            - Frequency axis values (default: linspace(-pi, pi, length(H)))
-%   yRange           - Y-axis range (default: dynamically determined based on signal properties)
-%   dynamicXRange    - Boolean flag (true = limit X-axis based on values abs(H)>0, false = [-pi, pi]) (default: false)
+%   H        - Fourier Transform values (vector)
+%   options  - Struct with optional fields:
+%       • plotNegative (bool)   - Show raw values instead of magnitude (default: false)
+%       • subplotMode (bool)    - If true, do not create a new figure (default: false)
+%       • omega (vector)        - Frequency axis values (default: linspace(-pi, pi, length(H)))
+%       • yRange (vector)       - Y-axis range (default: dynamically determined)
+%       • dynamicXRange (bool)  - Adjust X-axis based on significant values (default: false)
 %
 % Outputs:
 %   A plot of |H| or H depending on plotNegative, optionally within a subplot.
 %
 % Example:
-%   omega = linspace(-pi, pi, 1000);
-%   H = sinc(omega/pi);
-%   magPlot(H);
-%   magPlot(H, true);
-%   magPlot(H, false, true, omega, [-1,1], true);
+%   omega = linspace(-pi, pi, length(H));
+%   magPlot(H, plotNegative=true, omega=omega);
 %
 % Notes:
 %   - If `plotNegative` is enabled, real values of H will be plotted instead of magnitude.
-%   - If `dynamicXRange` is true, the X-axis limits are dynamically adjusted based on the presence of significant values.
+%   - If `dynamicXRange` is true, the X-axis limits are dynamically adjusted based on significant values.
 %   - Uses LaTeX formatting for axis labels.
 %
 % See also: plotReIm
 
-    % Set default plotNegative to false (plot abs(H))
-    if nargin < 2 || isempty(plotNegative)
-        plotNegative = false;
+    arguments
+        H (1,:) double
+        options.plotNegative (1,1) logical = false
+        options.subplotMode (1,1) logical = false
+        options.omega (1,:) double = linspace(-pi, pi, length(H))
+        options.yRange (1,2) double = [NaN NaN] % Auto-determined if NaN
+        options.dynamicXRange (1,1) logical = false
     end
 
     % Get the variable name for labeling
@@ -50,7 +50,7 @@ function magPlot(H, plotNegative, subplotMode, omega, yRange, dynamicXRange)
     formattedName = strrep(name, '_', '\_');
 
     % Determine whether to plot absolute magnitude or raw values
-    if plotNegative
+    if options.plotNegative
         if isreal(H)
             yData = H;
         else
@@ -61,41 +61,28 @@ function magPlot(H, plotNegative, subplotMode, omega, yRange, dynamicXRange)
         yData = abs(H);
     end
 
-    % Set default subplotMode to false (create a new figure)
-    if nargin < 3 || isempty(subplotMode)
-        subplotMode = false;
-    end
-
-    % Set default omega if not provided
-    if nargin < 4 || isempty(omega)
-        omega = linspace(-pi, pi, length(H));
-    end
-    
-    % Set yRange dynamically based on signal min/max if not provided
-    if nargin < 5 || isempty(yRange)
+    % Set default yRange dynamically based on signal min/max
+    if any(isnan(options.yRange))
         dataMin = min(yData);
         dataMax = max(yData);
         tolerance = 1e-6 * abs(dataMax);
-    
         if abs(dataMax - dataMin) < tolerance
             buffer = max(0.05 * abs(dataMin), 0.05);
-            yRange = [dataMin - buffer, dataMax + buffer];
+            options.yRange = [dataMin - buffer, dataMax + buffer];
         else
             buffer = 0.1 * (dataMax - dataMin);
-            yRange = [dataMin - buffer, dataMax + buffer];
+            options.yRange = [dataMin - buffer, dataMax + buffer];
         end
     end
-    
-    % Set dynamicXRange to false if not provided
-    if nargin < 6 || isempty(dynamicXRange)
-        dynamicXRange = false;
-    end
-    if dynamicXRange
+
+    % Determine X-axis range dynamically
+    if options.dynamicXRange
         bounds = find(abs(yData) > 0);
-        xmin = max(omega(bounds(1)) * 1.05, -pi);
-        xmax = min(omega(bounds(end)) * 1.05, pi);
+        xmin = max(options.omega(bounds(1)) * 1.05, -pi);
+        xmax = min(options.omega(bounds(end)) * 1.05, pi);
     else
-        xmin = -pi; xmax = pi;
+        xmin = -pi;
+        xmax = pi;
     end
 
     % Define tick values and labels for the x-axis
@@ -103,18 +90,18 @@ function magPlot(H, plotNegative, subplotMode, omega, yRange, dynamicXRange)
     xtick_labels = {'-\pi', '-3\pi/4', '-\pi/2', '-\pi/4', '0', '\pi/4', '\pi/2', '3\pi/4', '\pi'};
 
     % Create a new figure only if subplotMode is false
-    if ~subplotMode
+    if ~options.subplotMode
         figure;
     end
 
     % Plot the data
-    plot(omega, yData, 'LineWidth', 1.5);
+    plot(options.omega, yData, 'LineWidth', 1.5);
     title(['Magnitude of ', formattedName, '(e^{j\omega})']);
     xlabel('\omega');
     ylabel(['|', formattedName, '(e^{j\omega})|']);
     xticks(xtick_vals);
     xticklabels(xtick_labels);
-    ylim(yRange);
+    ylim(options.yRange);
     xlim([xmin, xmax]);
     grid on;
 end

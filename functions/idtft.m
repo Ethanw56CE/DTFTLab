@@ -27,6 +27,10 @@ function timeSignal = idtft(X_dtft)
 %
 % See also: dtft, fft, ifft, fftshift
 
+    arguments
+        X_dtft (1,:) double
+    end
+
 % Compute the inverse DTFT using IFFT
 N = length(X_dtft); % Number of samples
 

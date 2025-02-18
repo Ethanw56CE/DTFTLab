@@ -1,14 +1,10 @@
-function [H_upsampled, omega_upsampled] = upsampleDTFT(H, omega, U, applyInterpLPF, applyOutlierRemoval, movSize, outlierMethod, interpMethod)
+function [H_upsampled, omega_upsampled] = upsampleDTFT(H, omega, U, options)
 % UPSAMPLEDTFT - Upsamples a computed Discrete-Time Fourier Transform (DTFT) by a given factor.
 % Optionally applies an interpolation low-pass filter and removes outliers.
 %
 % Syntax:
 %   [H_upsampled, omega_upsampled] = upsampleDTFT(H, omega, U)
-%   [H_upsampled, omega_upsampled] = upsampleDTFT(H, omega, U, applyInterpLPF)
-%   [H_upsampled, omega_upsampled] = upsampleDTFT(H, omega, U, applyInterpLPF, applyOutlierRemoval)
-%   [H_upsampled, omega_upsampled] = upsampleDTFT(H, omega, U, applyInterpLPF, applyOutlierRemoval, movSize)
-%   [H_upsampled, omega_upsampled] = upsampleDTFT(H, omega, U, applyInterpLPF, applyOutlierRemoval, movSize, outlierMethod)
-%   [H_upsampled, omega_upsampled] = upsampleDTFT(H, omega, U, applyInterpLPF, applyOutlierRemoval, movSize, outlierMethod, interpMethod)
+%   [H_upsampled, omega_upsampled] = upsampleDTFT(H, omega, U, options)
 %
 % Description:
 %   This function increases the resolution of a DTFT spectrum by upsampling it in the frequency domain.
@@ -16,23 +12,24 @@ function [H_upsampled, omega_upsampled] = upsampleDTFT(H, omega, U, applyInterpL
 %   The function can also remove outliers introduced by the upsampling process.
 %
 % Inputs:
-%   H                  - Fourier Transform values (vector)
-%   omega              - Frequency axis values (vector)
-%   U                  - Upsampling factor (integer > 1)
-%   applyInterpLPF     - Boolean flag to apply an Interpolation LPF with cutoff pi/U and gain U (default: false)
-%   applyOutlierRemoval - Boolean flag to apply outlier removal (default: false)
-%   movSize            - Window size for outlier detection (default: length(H)/100)
-%   outlierMethod      - Method for detecting outliers (default: "movmean")
-%   interpMethod       - Interpolation method for replacing outliers (default: "linear")
+%   H        - Fourier Transform values (vector)
+%   omega    - Frequency axis values (vector) (automatically set if not same length as H)
+%   U        - Upsampling factor (integer > 1)
+%   options  - Struct with optional fields:
+%       • applyInterpLPF (bool)   - Apply an Interpolation LPF with cutoff pi/U and gain U (default: false)
+%       • applyOutlierRemoval (bool) - Apply outlier removal after upsampling (default: false)
+%       • movSize (scalar)        - Window size for outlier detection (default: length(H)/100)
+%       • outlierMethod (char)    - Method for detecting outliers (default: "movmean")
+%       • interpMethod (char)     - Interpolation method for replacing outliers (default: "linear")
 %
 % Outputs:
-%   H_upsampled       - Upsampled Fourier Transform values (vector)
-%   omega_upsampled   - New frequency axis values (vector)
+%   H_upsampled    - Upsampled Fourier Transform values (vector)
+%   omega_upsampled - New frequency axis values (vector)
 %
 % Example:
-%   omega = linspace(-pi, pi, 1000);
-%   H = sinc(omega/pi);
-%   [H_up, omega_up] = upsampleDTFT(H, omega, 2, true);
+%   options.applyInterpLPF = true;
+%   options.applyOutlierRemoval = true;
+%   [H_up, omega_up] = upsampleDTFT(H, omega, 2, options);
 %   plot(omega_up, abs(H_up)); title('Upsampled FT Magnitude');
 %
 % Notes:
@@ -43,26 +40,29 @@ function [H_upsampled, omega_upsampled] = upsampleDTFT(H, omega, U, applyInterpL
 %
 % See also: downsampleDTFT, bestLowPassFilter, removeOutliers, applyFilter
 
-    % Validate upsampling factor
-    if U <= 1 || mod(U, 1) ~= 0
-        error('Upsampling factor must be an integer greater than 1.');
+    arguments
+        H (1,:) double
+        omega (1,:) double
+        U (1,1) {mustBeInteger, mustBeGreaterThan(U,1)}
+        options.applyInterpLPF (1,1) logical = false
+        options.applyOutlierRemoval (1,1) logical = false
+        options.movSize (1,1) double = max(length(H)/100, 10)
+        options.outlierMethod char {mustBeMember(options.outlierMethod, {'median','mean','quartiles', 'grubbs', 'gesd', 'movmedian', 'movmean'})} = 'movmean'
+        options.interpMethod char {mustBeMember(options.interpMethod, {'linear','nearest','next', 'previous', 'spline', 'pchip', 'cubic', 'v5cubic', 'makima'})} = 'linear'
     end
-    if nargin < 5 || isempty(applyOutlierRemoval)
-        applyOutlierRemoval = false;
-    end
-    if nargin < 4 || isempty(applyInterpLPF)
-        applyInterpLPF = false;
+
+    % Ensure omega matches H in length; if not, generate default omega
+    if length(omega) ~= length(H)
+        warning('omega length does not match H. Resetting omega to linspace(-pi, pi, length(H)).');
+        omega = linspace(-pi, pi, length(H));
     end
 
     % Persistent memory optimization for omega_upsampled
     persistent prev_U prev_N prev_omega_upsampled;
-    if isempty(prev_omega_upsampled) || U ~= prev_U || length(omega) ~= prev_N || length(omega) ~= length(H)
+    if isempty(prev_omega_upsampled) || U ~= prev_U || length(omega) ~= prev_N
         prev_omega_upsampled = linspace(-pi, pi, length(H) * U);
         prev_U = U;
         prev_N = length(H);
-        if isempty(omega) || length(omega) ~= length(H)
-            omega = linspace(-pi, pi, length(H));
-        end
     end
     
     % Define new upsampled omega vector
@@ -77,22 +77,13 @@ function [H_upsampled, omega_upsampled] = upsampleDTFT(H, omega, U, applyInterpL
     end
     
     % Apply Interpolation Low-Pass Filter if flag is set
-    if applyInterpLPF
-        LPF = U * bestLowPassFilter(H_upsampled, [], omega_upsampled, [], [], pi/U);
+    if options.applyInterpLPF
+        LPF = U * bestLowPassFilter(H_upsampled, struct('cutoff', pi/U));
         H_upsampled = applyFilter(H_upsampled, LPF);
     end
     
     % Remove outliers if flag is set
-    if applyOutlierRemoval
-        if nargin < 6 || isempty(movSize)
-            movSize = [];
-        end
-        if nargin < 7 || isempty(outlierMethod)
-            outlierMethod = [];
-        end
-        if nargin < 8 || isempty(interpMethod)
-            interpMethod = [];
-        end
-        H_upsampled = removeOutliers(H_upsampled, omega_upsampled, movSize, outlierMethod, interpMethod);
+    if options.applyOutlierRemoval
+        H_upsampled = removeOutliers(H_upsampled, omega_upsampled, movSize=options.movSize, outlierMethod=options.outlierMethod, interpMethod=options.interpMethod);
     end
 end

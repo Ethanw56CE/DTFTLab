@@ -31,6 +31,11 @@ function newOmega = freq_shift_periodic(omega, d)
 %
 % See also: mod, fftshift
 
+    arguments
+        omega (1,:) double
+        d (1, 1) double
+    end
+
 % Apply frequency shift and maintain periodicity in [-pi, pi]
 newOmega = mod(omega - d, 2*pi) - pi;
 

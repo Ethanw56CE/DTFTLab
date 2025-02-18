@@ -43,20 +43,20 @@ grid on;
 [X_dtft, omega] = dtft(X);  % Convert signal to DTFT domain
 
 subplot(3, 3, 4);
-magPlot(X_dtft, false, true, omega);  % Plot DTFT magnitude
+magPlot(X_dtft, subplotMode=true, omega=omega);  % Plot DTFT magnitude
 title("Magnitude of X(e^{j\omega})");
 
 %% **Step 5: Design and Apply Low-Pass Filter**
-H4 = bestLowPassFilter(X_dtft, 0.25);  % Automatically determine cutoff
+H4 = bestLowPassFilter(X_dtft, thresholdGain=0.25);  % Automatically determine cutoff
 
 subplot(3, 3, 5);
-magPlot(H4, false, true);
+magPlot(H4, subplotMode=true);
 title("Magnitude of H4(e^{j\omega}) - Low-Pass Filter");
 
-X_filtered = applyFilter(X_dtft, H4, false);  % Apply low-pass filter
+X_filtered = applyFilter(X_dtft, H4, applyOutlierRemoval=false);  % Apply low-pass filter
 
 subplot(3, 3, 6);
-magPlot(X_filtered, false, true);
+magPlot(X_filtered, subplotMode=true);
 title("Filtered DTFT Spectrum");
 
 %% **Step 6: Convert back to time domain**
@@ -74,7 +74,7 @@ grid on;
 X_filtered(abs(X_filtered) < 0.3) = 0;
 
 subplot(3, 3, 8);
-magPlot(X_filtered, false, true);
+magPlot(X_filtered, subplotMode=true);
 title("Gated DTFT Spectrum");
 
 X_ifft = idtft(X_filtered);  % Convert filtered signal back to time domain 

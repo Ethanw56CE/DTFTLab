@@ -22,7 +22,7 @@ function cleanSignal = removeNaNs(signal, omega, method)
 %   omega = linspace(-pi, pi, 100);
 %   signal = sin(omega);
 %   signal(30:40) = NaN; % Introduce NaNs
-%   cleanSignal = removeNaNs(signal, omega, 'spline');
+%   cleanSignal = removeNaNs(signal, omega=omega, method='spline');
 %   plot(omega, cleanSignal);
 %   title('Signal with NaNs Replaced');
 %
@@ -33,9 +33,12 @@ function cleanSignal = removeNaNs(signal, omega, method)
 %
 % See also: interp1, fillmissing
 
-    if nargin < 3
-        method = 'linear'; % Default interpolation method
+    arguments
+        signal (1,:) double
+        omega (1,:) double = linspace(-pi, pi, length(H))
+        method char {mustBeMember(method, {'linear','nearest','next', 'previous', 'spline', 'pchip', 'cubic', 'v5cubic', 'makima'})} = 'linear'
     end
+
     
     % Identify NaN values
     nanMask = isnan(signal);

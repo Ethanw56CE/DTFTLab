@@ -40,8 +40,11 @@ function X_dtft = c2dSample(X_ct, omega_ct, Ts, method)
 %
 % See also: dtft, idtft, interp1
 
-    if nargin < 4 || isempty(method)
-        method = 'linear';
+    arguments
+        X_ct (1,:) double
+        omega_ct (1,:) double
+        Ts (1,1) double
+        method char {mustBeMember(method, {'linear','nearest','next', 'previous', 'spline', 'pchip', 'cubic', 'v5cubic', 'makima'})} = 'linear'
     end
 
     % Define digital frequency range [-pi, pi]
